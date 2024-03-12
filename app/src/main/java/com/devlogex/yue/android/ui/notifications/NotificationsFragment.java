@@ -25,7 +25,9 @@ public class NotificationsFragment extends Fragment {
         View root = binding.getRoot();
 
         final TextView textView = binding.textNotifications;
-        notificationsViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
+        notificationsViewModel.getText().observe(getViewLifecycleOwner(), count -> {
+            textView.setText(String.valueOf(count));
+        });
         return root;
     }
 
