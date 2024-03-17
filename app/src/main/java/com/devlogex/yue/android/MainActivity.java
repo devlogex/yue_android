@@ -1,13 +1,27 @@
 package com.devlogex.yue.android;
 
+import static android.Manifest.permission.RECORD_AUDIO;
+
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.speech.RecognitionListener;
+import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 
+import com.devlogex.yue.android.utils.SpeechRecognition;
+import com.devlogex.yue.android.utils.TTS;
+import com.devlogex.yue.android.utils.impl.SpeechRecognitionImpl;
+import com.devlogex.yue.android.utils.impl.TTSImpl;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -15,13 +29,16 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.devlogex.yue.android.databinding.ActivityMainBinding;
 
+import java.util.ArrayList;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
 
-    private TextToSpeech tts;
+    private SpeechRecognition speechRecognition;
+    private TTS tts;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,41 +58,25 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupWithNavController(binding.navView, navController);
 
 
-        tts = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
-            @Override
-            public void onInit(int status) {
-                if (status == TextToSpeech.SUCCESS) {
-                    int result = tts.setLanguage(Locale.US);
+        tts = new TTSImpl(this);
 
-                    if (result == TextToSpeech.LANG_MISSING_DATA ||
-                            result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                        Log.e("TTS", "This Language is not supported");
-                    }
-                } else {
-                    Log.e("TTS", "Initialization Failed!");
-                }
-            }
-        });
+
+        speechRecognition = new SpeechRecognitionImpl(this);
 
     }
 
     public void speak(View view) {
-        System.out.println("Start speak...............");
-        speakOut("hello, my name is Ann. I'm a bot");
+//        tts.speak("Hello, how are you?");
+
+        speechRecognition.startListening();
     }
 
-    private void speakOut(String text) {
-        Bundle params = new Bundle();
-        params.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, 1);
-        tts.speak(text, TextToSpeech.QUEUE_FLUSH, params, null);
-    }
 
     @Override
     public void onDestroy() {
-        if (tts != null) {
-            tts.stop();
-            tts.shutdown();
-        }
+        tts.destroy();
+        speechRecognition.destroy();
+
         super.onDestroy();
     }
 }
