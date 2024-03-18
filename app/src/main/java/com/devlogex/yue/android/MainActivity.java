@@ -28,8 +28,26 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.devlogex.yue.android.databinding.ActivityMainBinding;
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseOptions;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
+import org.webrtc.DataChannel;
+import org.webrtc.IceCandidate;
+import org.webrtc.MediaStream;
+import org.webrtc.PeerConnection;
+import org.webrtc.PeerConnectionFactory;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
@@ -63,12 +81,27 @@ public class MainActivity extends AppCompatActivity {
 
         speechRecognition = new SpeechRecognitionImpl(this);
 
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        CollectionReference col = db.collection("test");
+        col.document("firstDoc").get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                TextView textView = findViewById(R.id.text_home);
+                textView.setText(task.getResult().getData().toString());
+            } else {
+                Log.d("TAG", "get failed with ", task.getException());
+            }
+        });
+
+
+
     }
 
     public void speak(View view) {
 //        tts.speak("Hello, how are you?");
 
-        speechRecognition.startListening();
+//        speechRecognition.startListening();
+
     }
 
 
