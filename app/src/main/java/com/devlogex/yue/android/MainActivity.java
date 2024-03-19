@@ -1,7 +1,9 @@
 package com.devlogex.yue.android;
 
+import static android.Manifest.permission.CAMERA;
 import static android.Manifest.permission.RECORD_AUDIO;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -13,10 +15,13 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
+import com.devlogex.yue.android.exceptions.PermissionRequireException;
 import com.devlogex.yue.android.utils.SpeechRecognition;
 import com.devlogex.yue.android.utils.TTS;
+import com.devlogex.yue.android.utils.WebRTC;
 import com.devlogex.yue.android.utils.impl.SpeechRecognitionImpl;
 import com.devlogex.yue.android.utils.impl.TTSImpl;
+import com.devlogex.yue.android.utils.impl.WebRTCImpl;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -34,21 +39,37 @@ import com.google.firebase.FirebaseOptions;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.webrtc.AudioSource;
+import org.webrtc.AudioTrack;
+import org.webrtc.Camera1Enumerator;
+import org.webrtc.Camera2Enumerator;
+import org.webrtc.CameraEnumerator;
 import org.webrtc.DataChannel;
 import org.webrtc.IceCandidate;
+import org.webrtc.MediaConstraints;
 import org.webrtc.MediaStream;
+import org.webrtc.MediaStreamTrack;
 import org.webrtc.PeerConnection;
 import org.webrtc.PeerConnectionFactory;
-
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import org.webrtc.RtpReceiver;
+import org.webrtc.SdpObserver;
+import org.webrtc.SessionDescription;
+import org.webrtc.VideoCapturer;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -57,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
     private SpeechRecognition speechRecognition;
     private TTS tts;
 
+    private WebRTC webRTC = WebRTCImpl.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,26 +103,26 @@ public class MainActivity extends AppCompatActivity {
 
         speechRecognition = new SpeechRecognitionImpl(this);
 
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        TextView textView = findViewById(R.id.text_home);
 
-        CollectionReference col = db.collection("test");
-        col.document("firstDoc").get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                TextView textView = findViewById(R.id.text_home);
-                textView.setText(task.getResult().getData().toString());
-            } else {
-                Log.d("TAG", "get failed with ", task.getException());
-            }
-        });
-
-
-
+        try {
+            webRTC.createConnection(this);
+        } catch (PermissionRequireException e) {
+            textView.setText(e.getMessage());
+            e.printStackTrace();
+        }
     }
 
-    public void speak(View view) {
+
+    public void speak(View view) throws JSONException {
 //        tts.speak("Hello, how are you?");
 
 //        speechRecognition.startListening();
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("msg_type", "statement");
+        jsonObject.put("content", "Hello, how are you?");
+        webRTC.send(jsonObject.toString());
 
     }
 
@@ -109,6 +131,7 @@ public class MainActivity extends AppCompatActivity {
     public void onDestroy() {
         tts.destroy();
         speechRecognition.destroy();
+        webRTC.closeConnection();
 
         super.onDestroy();
     }

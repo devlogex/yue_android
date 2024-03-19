@@ -2,14 +2,14 @@ package com.devlogex.yue.android.utils.impl;
 
 import static android.Manifest.permission.RECORD_AUDIO;
 
+import static com.devlogex.yue.android.utils.Permissions.requestAudioPermission;
+
 import android.app.Activity;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import com.devlogex.yue.android.utils.SpeechRecognition;
 
@@ -26,7 +26,7 @@ public class SpeechRecognitionImpl implements SpeechRecognition {
 
     public SpeechRecognitionImpl(Activity activity) {
         this.activity = activity;
-        requestPermission();
+        requestAudioPermission(activity);
 
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(activity);
         recognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
@@ -38,12 +38,6 @@ public class SpeechRecognitionImpl implements SpeechRecognition {
         speechRecognizer.setRecognitionListener(recognitionListener);
 
         }
-
-    public void requestPermission() {
-        if (ContextCompat.checkSelfPermission(activity, RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(activity, new String[]{RECORD_AUDIO}, 1);
-        }
-    }
 
     @Override
     public void startListening() {

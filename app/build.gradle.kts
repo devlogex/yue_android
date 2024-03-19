@@ -59,6 +59,9 @@ dependencies {
     implementation("androidx.navigation:navigation-fragment:2.7.7")
     implementation("androidx.navigation:navigation-ui:2.7.7")
 
+    implementation("com.squareup.okhttp3:okhttp:4.9.0")
+
+
     // webRTC
     implementation("com.infobip:google-webrtc:1.0.41840d")
 
