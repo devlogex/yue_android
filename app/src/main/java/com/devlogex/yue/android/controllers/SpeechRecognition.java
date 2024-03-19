@@ -1,4 +1,4 @@
-package com.devlogex.yue.android.utils;
+package com.devlogex.yue.android.controllers;
 
 public interface SpeechRecognition {
 

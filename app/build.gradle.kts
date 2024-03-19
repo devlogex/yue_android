@@ -61,6 +61,8 @@ dependencies {
 
     implementation("com.squareup.okhttp3:okhttp:4.9.0")
 
+    // Google Sign-In
+    implementation("com.google.android.gms:play-services-auth:21.0.0")
 
     // webRTC
     implementation("com.infobip:google-webrtc:1.0.41840d")

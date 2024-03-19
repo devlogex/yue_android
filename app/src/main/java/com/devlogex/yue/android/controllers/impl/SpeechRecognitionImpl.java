@@ -1,4 +1,4 @@
-package com.devlogex.yue.android.utils.impl;
+package com.devlogex.yue.android.controllers.impl;
 
 import static android.Manifest.permission.RECORD_AUDIO;
 
@@ -11,7 +11,7 @@ import android.speech.SpeechRecognizer;
 
 import androidx.core.app.ActivityCompat;
 
-import com.devlogex.yue.android.utils.SpeechRecognition;
+import com.devlogex.yue.android.controllers.SpeechRecognition;
 
 
 public class SpeechRecognitionImpl implements SpeechRecognition {
