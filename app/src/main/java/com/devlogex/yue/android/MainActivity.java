@@ -1,6 +1,9 @@
 package com.devlogex.yue.android;
 
 
+import static com.devlogex.yue.android.controllers.ShareStorage.getToken;
+import static com.devlogex.yue.android.controllers.ShareStorage.getUserInfo;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -12,6 +15,7 @@ import com.devlogex.yue.android.controllers.TTS;
 import com.devlogex.yue.android.controllers.WebRTC;
 import com.devlogex.yue.android.controllers.impl.GoogleSSO;
 import com.devlogex.yue.android.controllers.impl.WebRTCImpl;
+import com.devlogex.yue.android.serializers.UserSerializer;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -70,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
 //        jsonObject.put("content", "Hello, how are you?");
 //        webRTC.send(jsonObject.toString());
 
-        authenticate = GoogleSSO.getInstance();
+        authenticate = GoogleSSO.getInstance(this);
         authenticate.login(this);
     }
 
@@ -80,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (requestCode == GoogleSSO.RC_SIGN_IN) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
-            authenticate.onSignInResult(task);
+            authenticate.onGoogleSignInResult(this, task);
         }
     }
 

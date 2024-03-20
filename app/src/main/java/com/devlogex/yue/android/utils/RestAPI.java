@@ -22,8 +22,10 @@ public class RestAPI {
         Request.Builder request = new Request.Builder()
                 .url(url)
                 .post(payload);
-        for (Map.Entry<String, String> entry : headers.entrySet()) {
-            request.addHeader(entry.getKey(), entry.getValue());
+        if (headers != null) {
+            for (Map.Entry<String, String> entry : headers.entrySet()) {
+                request.addHeader(entry.getKey(), entry.getValue());
+            }
         }
         Response response = client.newCall(request.build()).execute();
         return response;
