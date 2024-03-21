@@ -5,21 +5,29 @@ import org.json.JSONObject;
 
 public class UserSerializer {
     private String id;
-    private String name;
+    private String firstName;
+    private String lastName;
     private String email;
 
-    public UserSerializer(String id, String name, String email) {
+    public UserSerializer(String id, String firstName, String lastName, String email) {
         this.id = id;
-        this.name = name;
+        this.firstName = firstName;
+        this.lastName = lastName;
         this.email = email;
     }
+
+
 
     public String getId() {
         return id;
     }
 
-    public String getName() {
-        return name;
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
     }
 
     public String getEmail() {
@@ -28,7 +36,8 @@ public class UserSerializer {
 
     public static UserSerializer fromJson(String jsonStr) {
         String id = null;
-        String name = null;
+        String first_name = null;
+        String last_name = null;
         String email = null;
         JSONObject json;
         try {
@@ -41,13 +50,17 @@ public class UserSerializer {
         } catch (Exception e) {
         }
         try {
-            name = json.getString("name");
+            first_name = json.getString("first_name");
+        } catch (Exception e) {
+        }
+        try {
+            last_name = json.getString("last_name");
         } catch (Exception e) {
         }
         try {
             email = json.getString("email");
         } catch (Exception e) {
         }
-        return new UserSerializer(id, name, email);
+        return new UserSerializer(id, first_name, last_name, email);
     }
 }

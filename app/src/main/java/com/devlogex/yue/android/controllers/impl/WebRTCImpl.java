@@ -5,6 +5,7 @@ import static com.devlogex.yue.android.utils.RestAPI.post;
 
 import android.app.Activity;
 
+import com.devlogex.yue.android.controllers.ShareStorage;
 import com.devlogex.yue.android.exceptions.PermissionRequireException;
 import com.devlogex.yue.android.controllers.Media;
 import com.devlogex.yue.android.controllers.WebRTC;
@@ -42,8 +43,9 @@ public class WebRTCImpl implements WebRTC {
     private String connectionId;
 
     private static WebRTCImpl instance = null;
+
     public static WebRTCImpl getInstance() {
-        if(instance == null) {
+        if (instance == null) {
             instance = new WebRTCImpl();
         }
         return instance;
@@ -72,11 +74,11 @@ public class WebRTCImpl implements WebRTC {
         createPeerConnection(peerConnectionFactory, rtcConfig);
         createDataChannel();
         addMediaTracks(peerConnectionFactory, activity);
-        signaling(peerConnection);
+        signaling(peerConnection, activity);
 
     }
 
-    private void signaling(PeerConnection peerConnection) {
+    private void signaling(PeerConnection peerConnection, Activity activity) {
         peerConnection.createOffer(new SdpObserver() {
             @Override
             public void onCreateSuccess(SessionDescription sessionDescription) {
@@ -88,7 +90,7 @@ public class WebRTCImpl implements WebRTC {
                     json.put("sdp", sessionDescription.description);
 
                     String url = "https://yue.devlogex.com/offer";
-                    Map<String, String> headers = Collections.singletonMap("Authorization", "Bearer " + "MTdiZWRhYTkxZjEwMjRlMDg1NGFiNTU2YmY4ODQ3Y2UyMTk4OTdiZjhi");
+                    Map<String, String> headers = Collections.singletonMap("Authorization", "Bearer " + ShareStorage.getToken(activity));
                     Response response = post(url, json.toString(), headers);
                     if (response.isSuccessful()) {
                         String responseBody = response.body().string();
@@ -121,8 +123,7 @@ public class WebRTCImpl implements WebRTC {
                             }
                         }, sdpAnswer);
 
-                    }
-                    else {
+                    } else {
                         // TODO: handle create connection failed
                     }
 
@@ -240,23 +241,47 @@ public class WebRTCImpl implements WebRTC {
 
     @Override
     public void closeConnection() {
-        if (dataChannel != null) {
-            dataChannel.close();
-        }
-        if (peerConnection != null) {
-            peerConnection.close();
-        }
-        if (mediaStream != null) {
-            for (AudioTrack audioTrack : mediaStream.audioTracks) {
-                audioTrack.dispose();
+        try {
+            if (dataChannel != null) {
+                dataChannel.close();
             }
-            mediaStream.dispose();
+        } catch (Exception e) {
+            // TODO: handle close connection failed
+            System.out.println("ERROR close connection: " +e.getMessage());
         }
-        if (peerConnectionFactory != null) {
-            peerConnectionFactory.dispose();
+        try {
+            if (peerConnection != null) {
+                peerConnection.close();
+            }
+        } catch (Exception e) {
+            // TODO: handle close connection failed
+            System.out.println("ERROR close connection: " +e.getMessage());
         }
-
-        aPost("https://yue.devlogex.com/disconnect", null, null, null);
+        try {
+            if (mediaStream != null) {
+                for (AudioTrack audioTrack : mediaStream.audioTracks) {
+                    audioTrack.dispose();
+                }
+                mediaStream.dispose();
+            }
+        } catch (Exception e) {
+            // TODO: handle close connection failed
+            System.out.println("ERROR close connection: " +e.getMessage());
+        }
+        try {
+            if (peerConnectionFactory != null) {
+                peerConnectionFactory.dispose();
+            }
+        } catch (Exception e) {
+            // TODO: handle close connection failed
+            System.out.println("ERROR close connection: " +e.getMessage());
+        }
+        try {
+            aPost("https://yue.devlogex.com/disconnect", null, null, null);
+        } catch (Exception e) {
+            // TODO: handle close connection failed
+            System.out.println("ERROR close connection: " +e.getMessage());
+        }
         instance = null;
     }
 

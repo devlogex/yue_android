@@ -6,6 +6,8 @@ import static com.devlogex.yue.android.controllers.ShareStorage.getUserInfo;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
@@ -16,6 +18,8 @@ import com.devlogex.yue.android.controllers.WebRTC;
 import com.devlogex.yue.android.controllers.impl.GoogleSSO;
 import com.devlogex.yue.android.controllers.impl.WebRTCImpl;
 import com.devlogex.yue.android.serializers.UserSerializer;
+import com.devlogex.yue.android.ui.SharedViewModel;
+import com.devlogex.yue.android.ui.call.CallViewModel;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -25,6 +29,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -38,11 +43,9 @@ public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
 
-    private SpeechRecognition speechRecognition;
-    private TTS tts;
+    NavController navController;
 
-    private Authenticate authenticate;
-
+    private SharedViewModel sharedViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +53,9 @@ public class MainActivity extends AppCompatActivity {
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        sharedViewModel = new ViewModelProvider(this).get(SharedViewModel.class);
+
 
         BottomNavigationView navView = findViewById(R.id.nav_view);
         // Passing each menu ID as a set of Ids because each
@@ -74,8 +80,8 @@ public class MainActivity extends AppCompatActivity {
 //        jsonObject.put("content", "Hello, how are you?");
 //        webRTC.send(jsonObject.toString());
 
-        authenticate = GoogleSSO.getInstance(this);
-        authenticate.login(this);
+//        authenticate = GoogleSSO.getInstance(this);
+//        authenticate.login(this);
     }
 
     @Override
@@ -84,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (requestCode == GoogleSSO.RC_SIGN_IN) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
-            authenticate.onGoogleSignInResult(this, task);
+            GoogleSSO.getInstance(this).onGoogleSignInResult(task, sharedViewModel);
         }
     }
 
@@ -92,8 +98,8 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onDestroy() {
-        tts.destroy();
-        speechRecognition.destroy();
+//        tts.destroy();
+//        speechRecognition.destroy();
 
         super.onDestroy();
     }

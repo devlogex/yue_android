@@ -12,9 +12,11 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
+import com.devlogex.yue.android.MainActivity;
 import com.devlogex.yue.android.R;
 import com.devlogex.yue.android.controllers.Authenticate;
 import com.devlogex.yue.android.serializers.UserSerializer;
+import com.devlogex.yue.android.ui.SharedViewModel;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -36,6 +38,7 @@ public class GoogleSSO implements Authenticate {
     public static final int RC_SIGN_IN = 215;
 
     private GoogleSignInClient googleSignInClient = null;
+    private Activity activity;
 
     private static GoogleSSO instance = null;
 
@@ -47,6 +50,7 @@ public class GoogleSSO implements Authenticate {
     }
 
     private GoogleSSO(Activity activity) {
+        this.activity = activity;
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(activity.getString(R.string.google_web_client_id))
                 .requestEmail()
@@ -56,14 +60,13 @@ public class GoogleSSO implements Authenticate {
     }
 
     @Override
-    public void login(Activity activity) {
+    public void login() {
         Intent signInIntent = googleSignInClient.getSignInIntent();
         activity.startActivityForResult(signInIntent, RC_SIGN_IN);
     }
 
     @Override
-    public void onGoogleSignInResult(Activity activity, Task<GoogleSignInAccount> task) {
-        TextView textView = activity.findViewById(R.id.text_home);
+    public void onGoogleSignInResult(Task<GoogleSignInAccount> task, SharedViewModel sharedViewModel) {
         try {
             GoogleSignInAccount account = task.getResult(ApiException.class);
             String code = account.getIdToken();
@@ -74,7 +77,6 @@ public class GoogleSSO implements Authenticate {
                 @Override
                 public void onFailure(@NonNull Call call, @NonNull IOException e) {
                     //TODO: handle login failed
-                    textView.setText(e.getMessage());
 
                 }
 
@@ -88,7 +90,7 @@ public class GoogleSSO implements Authenticate {
                             String userInfo = jsonResponse.getString("user_info");
                             saveToken(activity, token);
                             saveUserInfo(activity, userInfo);
-
+                            sharedViewModel.setIsLoginInBackGround(true);
                         } else {
                             //TODO: handle login failed
                         }
@@ -100,7 +102,6 @@ public class GoogleSSO implements Authenticate {
             });
         } catch (Throwable e) {
             // TODO: handle login failed
-            textView.setText(e.getMessage());
             System.out.println("ERROR: " + e.getMessage());
         }
     }
