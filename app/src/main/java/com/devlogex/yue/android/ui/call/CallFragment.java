@@ -12,8 +12,8 @@ import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.devlogex.yue.android.R;
+import com.devlogex.yue.android.controllers.CallManagement;
 import com.devlogex.yue.android.controllers.WebRTC;
-import com.devlogex.yue.android.controllers.impl.WebRTCImpl;
 import com.devlogex.yue.android.databinding.FragmentCallBinding;
 import com.devlogex.yue.android.exceptions.PermissionRequireException;
 import com.devlogex.yue.android.ui.SharedViewModel;
@@ -22,9 +22,6 @@ import com.devlogex.yue.android.ui.SharedViewModel;
 public class CallFragment extends Fragment {
 
     private FragmentCallBinding binding;
-
-    private WebRTC webRTC;
-
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         CallViewModel callViewModel = new ViewModelProvider(this).get(CallViewModel.class);
@@ -39,35 +36,13 @@ public class CallFragment extends Fragment {
             navController.navigate(R.id.navigation_home);
         }
 
-        startCall(sharedViewModel);
+        CallManagement.getInstance(getActivity()).startCall();
         return root;
     }
 
-    private void startCall(SharedViewModel sharedViewModel) {
-        webRTC = WebRTCImpl.getInstance(getActivity());
-        try {
-            sharedViewModel.setIsCalling(true);
-            webRTC.createConnection();
-
-
-        } catch (PermissionRequireException e) {
-            // TODO: handle lacking permission
-
-            sharedViewModel.setIsCalling(false);
-        } catch (Exception e) {
-            // TODO: handle create connection failed
-
-            sharedViewModel.setIsCalling(false);
-        }
-
-    }
-
-
     @Override
     public void onDestroyView() {
-        if (webRTC != null) {
-            webRTC.closeConnection();
-        }
+        CallManagement.getInstance(getActivity()).endCall();
         super.onDestroyView();
         binding = null;
     }

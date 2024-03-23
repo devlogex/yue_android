@@ -1,32 +1,20 @@
 package com.devlogex.yue.android;
 
 
-import static com.devlogex.yue.android.controllers.ShareStorage.getToken;
-import static com.devlogex.yue.android.controllers.ShareStorage.getUserInfo;
 import static com.devlogex.yue.android.utils.Permissions.hasAudioPermission;
 import static com.devlogex.yue.android.utils.Permissions.requestAudioPermission;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.speech.RecognizerIntent;
 import android.view.View;
-import android.widget.TextView;
 
-import com.devlogex.yue.android.controllers.Authenticate;
+import com.devlogex.yue.android.controllers.CallManagement;
 import com.devlogex.yue.android.controllers.SpeechRecognition;
-import com.devlogex.yue.android.controllers.TTS;
-import com.devlogex.yue.android.controllers.WebRTC;
 import com.devlogex.yue.android.controllers.impl.GoogleSSO;
-import com.devlogex.yue.android.controllers.impl.WebRTCImpl;
-import com.devlogex.yue.android.serializers.UserSerializer;
 import com.devlogex.yue.android.ui.SharedViewModel;
-import com.devlogex.yue.android.ui.call.CallViewModel;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.android.gms.auth.api.signin.GoogleSignInClient;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -39,7 +27,6 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.devlogex.yue.android.databinding.ActivityMainBinding;
 
-import org.json.JSONException;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -76,20 +63,11 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    public void onClickTest(View view) {
+//        SpeechRecognition.getInstance(this).startListening();
 
-    public void speak(View view) throws JSONException {
-//        tts.speak("Hello, how are you?");
-
-//        speechRecognition.startListening();
-
-//        JSONObject jsonObject = new JSONObject();
-//        jsonObject.put("msg_type", "statement");
-//        jsonObject.put("content", "Hello, how are you?");
-//        webRTC.send(jsonObject.toString());
-
-//        authenticate = GoogleSSO.getInstance(this);
-//        authenticate.login(this);
     }
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -98,16 +76,18 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == GoogleSSO.RC_SIGN_IN) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             GoogleSSO.getInstance(this).onGoogleSignInResult(task, sharedViewModel);
+            return;
         }
+//        if (requestCode == SpeechRecognition.RC_SPEECH_RECOGNITION) {
+//            SpeechRecognition.getInstance(this).startListening();
+//        }
     }
 
 
 
     @Override
     public void onDestroy() {
-//        tts.destroy();
-//        speechRecognition.destroy();
-
+        CallManagement.releaseInstance();
         super.onDestroy();
     }
 }

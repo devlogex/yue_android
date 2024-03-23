@@ -7,39 +7,32 @@ import android.speech.SpeechRecognizer;
 import androidx.annotation.NonNull;
 
 import com.devlogex.yue.android.controllers.SpeechRecognition;
-import com.devlogex.yue.android.controllers.WebRTC;
 
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class RecognitionListenerImpl implements RecognitionListener {
-    private WebRTC webRTC;
     private SpeechRecognition speechRecognition;
 
-    private ExecutorService executorService;
-    private Runnable sendRawTask;
 
-    public RecognitionListenerImpl(WebRTC webRTC, SpeechRecognition speechRecognition) {
-        this.webRTC = webRTC;
+    private static RecognitionListenerImpl instance = null;
+    public static RecognitionListenerImpl getInstance(SpeechRecognition speechRecognition) {
+        if (instance == null) {
+            instance = new RecognitionListenerImpl(speechRecognition);
+        }
+        return instance;
+    }
+
+    private RecognitionListenerImpl(SpeechRecognition speechRecognition) {
         this.speechRecognition = speechRecognition;
-        executorService = Executors.newSingleThreadExecutor();
-        sendRawTask = new Runnable() {
-            @Override
-            public void run() {
-                while (!Thread.currentThread().isInterrupted()) {
-                    try {
-                        sendRaw();
-                        Thread.sleep(3000);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        break;
-                    }
-                }
-            }
-        };
+    }
+
+    public static void releaseInstance() {
+        if (instance != null) {
+            instance = null;
+        }
+
     }
 
     private void sendMessage(String message) {
@@ -47,7 +40,6 @@ public class RecognitionListenerImpl implements RecognitionListener {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("msg_type", "statement");
             jsonObject.put("content", message);
-            webRTC.send(jsonObject.toString());
         } catch (Exception e) {
             // TODO: handle send msg failure
         }
@@ -57,7 +49,6 @@ public class RecognitionListenerImpl implements RecognitionListener {
         try {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("msg_type", "raw");
-            webRTC.send(jsonObject.toString());
         } catch (Exception e) {
             // TODO: handle send msg failure
         }
@@ -67,7 +58,6 @@ public class RecognitionListenerImpl implements RecognitionListener {
         try {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("msg_type", "yue_reply");
-            webRTC.send(jsonObject.toString());
         } catch (Exception e) {
             // TODO: handle send msg failure
         }
@@ -76,8 +66,14 @@ public class RecognitionListenerImpl implements RecognitionListener {
     @Override
     public void onResults(Bundle results) {
         ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-        sendMessage(matches.get(0));
-        System.out.println("onResults: " + matches.get(0));
+//        sendMessage(matches.get(0));
+        if (matches != null && !matches.isEmpty()) {
+            // Safely access the first match
+            System.out.println("onResults: " + matches.get(0));
+        } else {
+            // Handle the case where no speech input was recognized
+            System.out.println("onResults: No speech input recognized.");
+        }
     }
 
     @Override
@@ -88,7 +84,7 @@ public class RecognitionListenerImpl implements RecognitionListener {
 
     @Override
     public void onBeginningOfSpeech() {
-        executorService.execute(sendRawTask);
+//        executorService.execute(sendRawTask);
         System.out.println("TESTING listener onBeginningOfSpeech");
     }
 
@@ -104,9 +100,9 @@ public class RecognitionListenerImpl implements RecognitionListener {
 
     @Override
     public void onEndOfSpeech() {
-        if (executorService != null && !executorService.isShutdown()) {
-            executorService.shutdownNow();
-        }
+//        if (executorService != null && !executorService.isShutdown()) {
+//            executorService.shutdownNow();
+//        }
     }
 
     @Override
