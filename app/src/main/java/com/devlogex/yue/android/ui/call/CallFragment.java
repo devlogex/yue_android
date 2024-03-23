@@ -9,7 +9,6 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
-import androidx.navigation.NavDirections;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.devlogex.yue.android.R;
@@ -26,6 +25,7 @@ public class CallFragment extends Fragment {
 
     private WebRTC webRTC;
 
+
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         CallViewModel callViewModel = new ViewModelProvider(this).get(CallViewModel.class);
         SharedViewModel sharedViewModel = new ViewModelProvider(getActivity()).get(SharedViewModel.class);
@@ -33,22 +33,21 @@ public class CallFragment extends Fragment {
         binding = FragmentCallBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-        if (sharedViewModel.getIsLogin().getValue()) {
-            startCall(sharedViewModel);
-        } else {
+        // check call conditions
+        if (!sharedViewModel.getIsLogin().getValue()) {
             NavController navController = NavHostFragment.findNavController(this);
             navController.navigate(R.id.navigation_home);
-            System.out.println("TEST: not login yet");
         }
 
+        startCall(sharedViewModel);
         return root;
     }
 
     private void startCall(SharedViewModel sharedViewModel) {
-        webRTC = WebRTCImpl.getInstance();
+        webRTC = WebRTCImpl.getInstance(getActivity());
         try {
             sharedViewModel.setIsCalling(true);
-            webRTC.createConnection(getActivity());
+            webRTC.createConnection();
 
 
         } catch (PermissionRequireException e) {

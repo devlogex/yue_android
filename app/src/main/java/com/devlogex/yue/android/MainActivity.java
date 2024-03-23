@@ -3,6 +3,8 @@ package com.devlogex.yue.android;
 
 import static com.devlogex.yue.android.controllers.ShareStorage.getToken;
 import static com.devlogex.yue.android.controllers.ShareStorage.getUserInfo;
+import static com.devlogex.yue.android.utils.Permissions.hasAudioPermission;
+import static com.devlogex.yue.android.utils.Permissions.requestAudioPermission;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -66,6 +68,11 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
+
+        // request media permissions
+        if (!hasAudioPermission(this)) {
+            requestAudioPermission(this);
+        }
 
     }
 

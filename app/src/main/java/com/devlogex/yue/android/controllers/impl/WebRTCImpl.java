@@ -1,11 +1,15 @@
 package com.devlogex.yue.android.controllers.impl;
 
+import static com.devlogex.yue.android.utils.Constants.API_CLOSE_CONNECTION_URL;
+import static com.devlogex.yue.android.utils.Constants.API_OFFER_URL;
+import static com.devlogex.yue.android.utils.Constants.ICE_SERVER;
 import static com.devlogex.yue.android.utils.RestAPI.aPost;
 import static com.devlogex.yue.android.utils.RestAPI.post;
 
 import android.app.Activity;
 
 import com.devlogex.yue.android.controllers.ShareStorage;
+import com.devlogex.yue.android.controllers.SpeechRecognition;
 import com.devlogex.yue.android.exceptions.PermissionRequireException;
 import com.devlogex.yue.android.controllers.Media;
 import com.devlogex.yue.android.controllers.WebRTC;
@@ -40,22 +44,26 @@ public class WebRTCImpl implements WebRTC {
 
     private MediaStream mediaStream;
 
+    private SpeechRecognition speechRecognition;
+
     private String connectionId;
 
+    private Activity activity;
     private static WebRTCImpl instance = null;
 
-    public static WebRTCImpl getInstance() {
+    public static WebRTCImpl getInstance(Activity activity) {
         if (instance == null) {
-            instance = new WebRTCImpl();
+            instance = new WebRTCImpl(activity);
         }
         return instance;
     }
 
-    private WebRTCImpl() {
+    private WebRTCImpl(Activity activity) {
+        this.activity = activity;
     }
 
     @Override
-    public void createConnection(Activity activity) throws PermissionRequireException {
+    public void createConnection() throws PermissionRequireException {
         PeerConnectionFactory.InitializationOptions initializationOptions =
                 PeerConnectionFactory.InitializationOptions.builder(activity)
                         .createInitializationOptions();
@@ -67,18 +75,18 @@ public class WebRTCImpl implements WebRTC {
                 .createPeerConnectionFactory();
 
         List<PeerConnection.IceServer> iceServers = new ArrayList<>();
-        iceServers.add(PeerConnection.IceServer.builder("stun:stun.l.google.com:19302").createIceServer());
+        iceServers.add(PeerConnection.IceServer.builder(ICE_SERVER).createIceServer());
 
         PeerConnection.RTCConfiguration rtcConfig = new PeerConnection.RTCConfiguration(iceServers);
 
         createPeerConnection(peerConnectionFactory, rtcConfig);
         createDataChannel();
-        addMediaTracks(peerConnectionFactory, activity);
-        signaling(peerConnection, activity);
+        addMediaTracks(peerConnectionFactory);
+        signaling(peerConnection);
 
     }
 
-    private void signaling(PeerConnection peerConnection, Activity activity) {
+    private void signaling(PeerConnection peerConnection) {
         peerConnection.createOffer(new SdpObserver() {
             @Override
             public void onCreateSuccess(SessionDescription sessionDescription) {
@@ -89,9 +97,8 @@ public class WebRTCImpl implements WebRTC {
                     json.put("type", sessionDescription.type.canonicalForm());
                     json.put("sdp", sessionDescription.description);
 
-                    String url = "https://yue.devlogex.com/offer";
                     Map<String, String> headers = Collections.singletonMap("Authorization", "Bearer " + ShareStorage.getToken(activity));
-                    Response response = post(url, json.toString(), headers);
+                    Response response = post(API_OFFER_URL, json.toString(), headers);
                     if (response.isSuccessful()) {
                         String responseBody = response.body().string();
                         JSONObject jsonResponse = new JSONObject(responseBody);
@@ -152,7 +159,7 @@ public class WebRTCImpl implements WebRTC {
 
     }
 
-    private void addMediaTracks(PeerConnectionFactory peerConnectionFactory, Activity activity) throws PermissionRequireException {
+    private void addMediaTracks(PeerConnectionFactory peerConnectionFactory) throws PermissionRequireException {
         mediaStream = peerConnectionFactory.createLocalMediaStream("localStream");
         AudioTrack audioTrack = Media.getInstance().getAudio(activity, peerConnectionFactory);
         mediaStream.addTrack(audioTrack);
@@ -223,6 +230,13 @@ public class WebRTCImpl implements WebRTC {
             @Override
             public void onStateChange() {
                 // Handle state change
+                System.out.println("Data channel state: " + dataChannel.state());
+                if (dataChannel.state() == DataChannel.State.OPEN) {
+                    activity.runOnUiThread(() -> {
+                        speechRecognition = SpeechRecognitionImpl.getInstance(activity, instance);
+                        speechRecognition.startListening();
+                    });
+                }
             }
 
             @Override
@@ -241,6 +255,12 @@ public class WebRTCImpl implements WebRTC {
 
     @Override
     public void closeConnection() {
+        try {
+            speechRecognition.destroy();
+        } catch (Exception e) {
+            // TODO: handle close connection failed
+            System.out.println("ERROR close connection: " +e.getMessage());
+        }
         try {
             if (dataChannel != null) {
                 dataChannel.close();
@@ -277,7 +297,7 @@ public class WebRTCImpl implements WebRTC {
             System.out.println("ERROR close connection: " +e.getMessage());
         }
         try {
-            aPost("https://yue.devlogex.com/disconnect", null, null, null);
+            aPost(API_CLOSE_CONNECTION_URL, null, null, null);
         } catch (Exception e) {
             // TODO: handle close connection failed
             System.out.println("ERROR close connection: " +e.getMessage());
