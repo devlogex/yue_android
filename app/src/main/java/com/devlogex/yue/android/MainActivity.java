@@ -6,12 +6,10 @@ import static com.devlogex.yue.android.utils.Permissions.requestAudioPermission;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.speech.RecognizerIntent;
 import android.view.View;
 
 import com.devlogex.yue.android.controllers.CallManagement;
-import com.devlogex.yue.android.controllers.SpeechRecognition;
-import com.devlogex.yue.android.controllers.impl.GoogleSSO;
+import com.devlogex.yue.android.controllers.GoogleSSO;
 import com.devlogex.yue.android.ui.SharedViewModel;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;

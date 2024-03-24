@@ -10,8 +10,14 @@ import static com.devlogex.yue.android.utils.RestAPI.post;
 import android.app.Activity;
 import android.content.Intent;
 import android.speech.RecognizerIntent;
+import android.util.Log;
 
 import com.devlogex.yue.android.exceptions.PermissionRequireException;
+import com.devlogex.yue.android.repositories.FSCallback;
+import com.devlogex.yue.android.repositories.FirestoreRepository;
+import com.google.firebase.firestore.DocumentChange;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import org.json.JSONObject;
 import org.webrtc.AudioTrack;
@@ -232,7 +238,40 @@ public class WebRTC {
                     activity.runOnUiThread(() -> {
                         SpeechRecognition.getInstance(activity).startListening();
                     });
+
+                    FirestoreRepository.getInstance().listenOnCol(String.format("conversations/%s/messages", connectionId), new FSCallback() {
+
+                        @Override
+                        public void onGetDocSuccess(Map<String, Object> data) {
+
+                        }
+
+                        @Override
+                        public void onGetDocFailure(Exception e) {
+
+                        }
+
+                        @Override
+                        public void onEventListenColSuccess(QuerySnapshot snapshot) {
+                            for (DocumentChange dc : snapshot.getDocumentChanges()) {
+                                switch (dc.getType()) {
+                                    case ADDED:
+                                        System.out.println("TESTING fs listen: " + dc.getDocument().getData());
+                                        String msg = dc.getDocument().getData().get("content").toString();
+                                        TTS.getInstance(activity).speak(msg);
+                                        break;
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onEventListenColFailure(FirebaseFirestoreException e) {
+                            System.out.println("TESTING fs listen error: " + e.getMessage());
+
+                        }
+                    });
                 }
+
             }
 
             @Override

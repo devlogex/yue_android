@@ -1,21 +1,16 @@
-package com.devlogex.yue.android.controllers.impl;
+package com.devlogex.yue.android.controllers;
 
 
-import static com.devlogex.yue.android.controllers.ShareStorage.getUserInfo;
 import static com.devlogex.yue.android.controllers.ShareStorage.saveToken;
 import static com.devlogex.yue.android.controllers.ShareStorage.saveUserInfo;
 import static com.devlogex.yue.android.utils.RestAPI.aPost;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
-import com.devlogex.yue.android.MainActivity;
 import com.devlogex.yue.android.R;
-import com.devlogex.yue.android.controllers.Authenticate;
-import com.devlogex.yue.android.serializers.UserSerializer;
 import com.devlogex.yue.android.ui.SharedViewModel;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;

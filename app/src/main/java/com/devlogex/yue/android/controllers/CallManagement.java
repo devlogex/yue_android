@@ -5,6 +5,7 @@ import android.app.Activity;
 
 import com.devlogex.yue.android.controllers.impl.RecognitionListenerImpl;
 import com.devlogex.yue.android.exceptions.PermissionRequireException;
+import com.devlogex.yue.android.repositories.FirestoreRepository;
 
 public class CallManagement {
 
@@ -12,6 +13,7 @@ public class CallManagement {
     private static CallManagement instance = null;
     private CallManagement(Activity activity) {
         this.activity = activity;
+        FirestoreRepository.getInstance();
     }
 
     public static CallManagement getInstance(Activity activity) {
@@ -48,6 +50,8 @@ public class CallManagement {
         WebRTC.releaseInstance();
         RecognitionListenerImpl.releaseInstance();
         SpeechRecognition.releaseInstance();
+        FirestoreRepository.releaseInstance();
+        TTS.releaseInstance();
     }
 
     public void destroy() {

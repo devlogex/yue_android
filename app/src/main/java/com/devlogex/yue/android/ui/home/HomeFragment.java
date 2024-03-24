@@ -1,6 +1,5 @@
 package com.devlogex.yue.android.ui.home;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,7 +13,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.devlogex.yue.android.R;
 import com.devlogex.yue.android.controllers.ShareStorage;
-import com.devlogex.yue.android.controllers.impl.GoogleSSO;
+import com.devlogex.yue.android.controllers.GoogleSSO;
 import com.devlogex.yue.android.databinding.FragmentHomeBinding;
 import com.devlogex.yue.android.serializers.UserSerializer;
 import com.devlogex.yue.android.ui.SharedViewModel;

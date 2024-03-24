@@ -1,31 +1,46 @@
-package com.devlogex.yue.android.repositories.impl;
+package com.devlogex.yue.android.repositories;
+
 
 import androidx.annotation.Nullable;
 
-import com.devlogex.yue.android.repositories.FSCallback;
-import com.devlogex.yue.android.repositories.FirebaseRepository;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.FirebaseFirestoreSettings;
+import com.google.firebase.firestore.PersistentCacheSettings;
 import com.google.firebase.firestore.QuerySnapshot;
 
+public class FirestoreRepository {
 
-public class FirebaseRepositoryImpl implements FirebaseRepository {
     private FirebaseFirestore db;
-    private static final FirebaseRepositoryImpl instance = new FirebaseRepositoryImpl();
+    private static FirestoreRepository instance = new FirestoreRepository();
 
-    public static FirebaseRepositoryImpl getInstance() {
+    public static FirestoreRepository getInstance() {
         return instance;
     }
 
-    private FirebaseRepositoryImpl() {
-        db = FirebaseFirestore.getInstance();
+    public static void releaseInstance() {
+        if (instance != null) {
+            instance.destroy();
+            instance = null;
+        }
     }
 
-    @Override
+
+    private FirestoreRepository() {
+        db = FirebaseFirestore.getInstance();
+        FirebaseFirestoreSettings settings =
+                new FirebaseFirestoreSettings.Builder(db.getFirestoreSettings())
+                        // Use persistent disk cache (default)
+                        .setLocalCacheSettings(PersistentCacheSettings.newBuilder()
+                                .build())
+                        .build();
+        db.setFirestoreSettings(settings);
+    }
+
     public void getDocument(String path, FSCallback callback) {
         String[] pathParts = path.split("/");
 
@@ -49,7 +64,6 @@ public class FirebaseRepositoryImpl implements FirebaseRepository {
         });
     }
 
-    @Override
     public void listenOnCol(String path, FSCallback callback) {
         String[] pathParts = path.split("/");
 
@@ -72,5 +86,11 @@ public class FirebaseRepositoryImpl implements FirebaseRepository {
             }
         });
 
+    }
+
+    private void destroy() {
+        if (instance != null) {
+            db.terminate();
+        }
     }
 }
