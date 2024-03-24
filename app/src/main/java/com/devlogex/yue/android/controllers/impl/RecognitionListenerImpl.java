@@ -1,5 +1,6 @@
 package com.devlogex.yue.android.controllers.impl;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.speech.RecognitionListener;
 import android.speech.SpeechRecognizer;
@@ -7,6 +8,7 @@ import android.speech.SpeechRecognizer;
 import androidx.annotation.NonNull;
 
 import com.devlogex.yue.android.controllers.SpeechRecognition;
+import com.devlogex.yue.android.controllers.WebRTC;
 
 import org.json.JSONObject;
 
@@ -14,18 +16,23 @@ import java.util.ArrayList;
 
 public class RecognitionListenerImpl implements RecognitionListener {
     private SpeechRecognition speechRecognition;
+    private Activity activity;
+
+    private long lastMsgTimestamp = System.currentTimeMillis();
 
 
     private static RecognitionListenerImpl instance = null;
-    public static RecognitionListenerImpl getInstance(SpeechRecognition speechRecognition) {
+
+    public static RecognitionListenerImpl getInstance(SpeechRecognition speechRecognition, Activity activity) {
         if (instance == null) {
-            instance = new RecognitionListenerImpl(speechRecognition);
+            instance = new RecognitionListenerImpl(speechRecognition, activity);
         }
         return instance;
     }
 
-    private RecognitionListenerImpl(SpeechRecognition speechRecognition) {
+    private RecognitionListenerImpl(SpeechRecognition speechRecognition, Activity activity) {
         this.speechRecognition = speechRecognition;
+        this.activity = activity;
     }
 
     public static void releaseInstance() {
@@ -40,6 +47,7 @@ public class RecognitionListenerImpl implements RecognitionListener {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("msg_type", "statement");
             jsonObject.put("content", message);
+            WebRTC.getInstance(activity).send(jsonObject.toString());
         } catch (Exception e) {
             // TODO: handle send msg failure
         }
@@ -47,8 +55,11 @@ public class RecognitionListenerImpl implements RecognitionListener {
 
     private void sendRaw() {
         try {
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("msg_type", "raw");
+            if (System.currentTimeMillis() - lastMsgTimestamp >= 500) {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("msg_type", "raw");
+                WebRTC.getInstance(activity).send(jsonObject.toString());
+            }
         } catch (Exception e) {
             // TODO: handle send msg failure
         }
@@ -58,6 +69,7 @@ public class RecognitionListenerImpl implements RecognitionListener {
         try {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("msg_type", "yue_reply");
+            WebRTC.getInstance(activity).send(jsonObject.toString());
         } catch (Exception e) {
             // TODO: handle send msg failure
         }
@@ -66,14 +78,15 @@ public class RecognitionListenerImpl implements RecognitionListener {
     @Override
     public void onResults(Bundle results) {
         ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-//        sendMessage(matches.get(0));
+        sendMessage(matches.get(0));
         if (matches != null && !matches.isEmpty()) {
             // Safely access the first match
-            System.out.println("onResults: " + matches.get(0));
+            System.out.println("TESTING listener onResults: " + matches.get(0));
         } else {
             // Handle the case where no speech input was recognized
-            System.out.println("onResults: No speech input recognized.");
+            System.out.println("TESTING listener onResults: No speech input recognized.");
         }
+        speechRecognition.startListening();
     }
 
     @Override
@@ -116,6 +129,7 @@ public class RecognitionListenerImpl implements RecognitionListener {
     @Override
     public void onPartialResults(Bundle partialResults) {
         System.out.println("TESTING listener onPartialResults " + partialResults);
+        sendRaw();
 
     }
 

@@ -29,6 +29,9 @@ public class CallManagement {
 
     public void startCall() {
         try {
+//            activity.runOnUiThread(() -> {
+//                SpeechRecognition.getInstance(activity).startListening();
+//            });
             WebRTC.getInstance(activity).createConnection();
 
 
@@ -43,8 +46,8 @@ public class CallManagement {
 
     public void endCall() {
         WebRTC.releaseInstance();
-        SpeechRecognition.releaseInstance();
         RecognitionListenerImpl.releaseInstance();
+        SpeechRecognition.releaseInstance();
     }
 
     public void destroy() {

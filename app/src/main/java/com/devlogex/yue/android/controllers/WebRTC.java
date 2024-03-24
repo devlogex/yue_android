@@ -41,8 +41,6 @@ public class WebRTC {
 
     private DataChannel dataChannel;
 
-    private MediaStream mediaStream;
-
     private String connectionId;
 
     private Activity activity;
@@ -84,7 +82,7 @@ public class WebRTC {
 
         createPeerConnection(peerConnectionFactory, rtcConfig);
         createDataChannel();
-        addMediaTracks(peerConnectionFactory);
+//        addMediaTracks(peerConnectionFactory);
         signaling(peerConnection);
 
     }
@@ -163,12 +161,8 @@ public class WebRTC {
     }
 
     private void addMediaTracks(PeerConnectionFactory peerConnectionFactory) throws PermissionRequireException {
-        mediaStream = peerConnectionFactory.createLocalMediaStream("localStream");
         AudioTrack audioTrack = Media.getInstance().getAudio(activity, peerConnectionFactory);
-        mediaStream.addTrack(audioTrack);
-        for (MediaStreamTrack track : mediaStream.audioTracks) {
-            peerConnection.addTrack(track, Collections.singletonList(String.valueOf(mediaStream)));
-        }
+        peerConnection.addTrack(audioTrack);
     }
 
     private void createPeerConnection(PeerConnectionFactory peerConnectionFactory, PeerConnection.RTCConfiguration rtcConfig) {
@@ -238,7 +232,6 @@ public class WebRTC {
                     activity.runOnUiThread(() -> {
                         SpeechRecognition.getInstance(activity).startListening();
                     });
-//                    activity.startActivityForResult(new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH), SpeechRecognition.RC_SPEECH_RECOGNITION);
                 }
             }
 
@@ -267,17 +260,6 @@ public class WebRTC {
         try {
             if (peerConnection != null) {
                 peerConnection.close();
-            }
-        } catch (Exception e) {
-            // TODO: handle close connection failed
-            System.out.println("ERROR close connection: " +e.getMessage());
-        }
-        try {
-            if (mediaStream != null) {
-                for (AudioTrack audioTrack : mediaStream.audioTracks) {
-                    audioTrack.dispose();
-                }
-                mediaStream.dispose();
             }
         } catch (Exception e) {
             // TODO: handle close connection failed
