@@ -31,11 +31,9 @@ public class CallManagement {
 
     public void startCall() {
         try {
-//            activity.runOnUiThread(() -> {
-//                SpeechRecognition.getInstance(activity).startListening();
-//            });
+            Media.getInstance().muteBeepSound(activity);
+            TTS.getInstance(activity);
             WebRTC.getInstance(activity).createConnection();
-
 
         } catch (PermissionRequireException e) {
             // TODO: handle lacking permission
@@ -52,6 +50,7 @@ public class CallManagement {
         SpeechRecognition.releaseInstance();
         FirestoreRepository.releaseInstance();
         TTS.releaseInstance();
+        Media.getInstance().unmuteBeepSound(activity);
     }
 
     public void destroy() {

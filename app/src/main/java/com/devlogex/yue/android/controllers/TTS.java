@@ -2,14 +2,17 @@ package com.devlogex.yue.android.controllers;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Handler;
 import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
 import android.util.Log;
 
 import java.util.Locale;
+import java.util.UUID;
 
 public class TTS {
 
-    private static TextToSpeech tts;
+    private TextToSpeech tts;
 
     private static TTS instance = null;
     public static TTS getInstance(Activity activity) {
@@ -41,12 +44,40 @@ public class TTS {
                 }
             }
         });
+        tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+            @Override
+            public void onStart(String utteranceId) {
+                Log.d("TTS", "onStart: " + utteranceId);
+                activity.runOnUiThread(() -> {
+                    SpeechRecognition.getInstance(activity).stopListening();
+                    SpeechRecognition.getInstance(activity).setEnableListening(false);
+
+                    // Wait for a short period to ensure SpeechRecognizer has stopped
+                    new Handler().postDelayed(() -> {
+                        SpeechRecognition.getInstance(activity).setEnableListening(false);
+                    }, 500);
+
+                });
+            }
+
+            @Override
+            public void onDone(String utteranceId) {
+                Log.d("TTS", "onDone: " + utteranceId);
+                SpeechRecognition.getInstance(activity).setEnableListening(true);
+                activity.runOnUiThread(() -> SpeechRecognition.getInstance(activity).startListening());
+            }
+
+            @Override
+            public void onError(String utteranceId) {
+                Log.d("TTS", "onError: " + utteranceId);
+            }
+        });
     }
 
     public void speak(String text) {
         Bundle params = new Bundle();
         params.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, 1);
-        tts.speak(text, TextToSpeech.QUEUE_FLUSH, params, null);
+        tts.speak(text, TextToSpeech.QUEUE_FLUSH, params, UUID.randomUUID().toString());
     }
 
     public void destroy() {

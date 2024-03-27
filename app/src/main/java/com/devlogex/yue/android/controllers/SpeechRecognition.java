@@ -1,9 +1,12 @@
 package com.devlogex.yue.android.controllers;
 
+import static androidx.core.content.ContextCompat.getSystemService;
 import static com.devlogex.yue.android.utils.Permissions.requestAudioPermission;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.media.AudioManager;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 
@@ -13,8 +16,11 @@ public class SpeechRecognition {
 
     public static final int RC_SPEECH_RECOGNITION = 216;
 
+    private volatile boolean enableListening = true;
+
     private SpeechRecognizer speechRecognizer;
     private Intent recognizerIntent;
+    private Activity activity;
 
 
     private static SpeechRecognition instance = null;
@@ -26,7 +32,16 @@ public class SpeechRecognition {
         return instance;
     }
 
+    public boolean isEnableListening() {
+        return enableListening;
+    }
+
+    public void setEnableListening(boolean enableListening) {
+        this.enableListening = enableListening;
+    }
+
     private SpeechRecognition(Activity activity) {
+        this.activity = activity;
         requestAudioPermission(activity);
 
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(activity);
@@ -46,7 +61,11 @@ public class SpeechRecognition {
     }
 
     public void startListening() {
-        speechRecognizer.startListening(recognizerIntent);
+        if (enableListening) {
+            System.out.println("TESTING listener start status " + enableListening);
+            speechRecognizer.startListening(recognizerIntent);
+        }
+
     }
 
     public void stopListening() {

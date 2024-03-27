@@ -65,25 +65,13 @@ public class RecognitionListenerImpl implements RecognitionListener {
         }
     }
 
-    private void sendYueReplySignal() {
-        try {
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("msg_type", "yue_reply");
-            WebRTC.getInstance(activity).send(jsonObject.toString());
-        } catch (Exception e) {
-            // TODO: handle send msg failure
-        }
-    }
-
     @Override
     public void onResults(Bundle results) {
         ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-        sendMessage(matches.get(0));
         if (matches != null && !matches.isEmpty()) {
-            // Safely access the first match
+            sendMessage(matches.get(0));
             System.out.println("TESTING listener onResults: " + matches.get(0));
         } else {
-            // Handle the case where no speech input was recognized
             System.out.println("TESTING listener onResults: No speech input recognized.");
         }
         speechRecognition.startListening();
@@ -122,8 +110,6 @@ public class RecognitionListenerImpl implements RecognitionListener {
     public void onError(int error) {
         System.out.println("TESTING listener onError " + error + " " + String.valueOf(SpeechRecognizer.ERROR_NO_MATCH == error));
         speechRecognition.startListening();
-
-
     }
 
     @Override

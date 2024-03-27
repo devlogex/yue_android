@@ -1,10 +1,15 @@
 package com.devlogex.yue.android.controllers;
 
 
+import static android.content.Context.AUDIO_SERVICE;
 import static com.devlogex.yue.android.utils.Permissions.hasAudioPermission;
 import static com.devlogex.yue.android.utils.Permissions.requestAudioPermission;
 
 import android.app.Activity;
+import android.content.Context;
+import android.media.AudioManager;
+
+import androidx.core.content.ContextCompat;
 
 import com.devlogex.yue.android.exceptions.PermissionRequireException;
 
@@ -14,6 +19,7 @@ import org.webrtc.MediaConstraints;
 import org.webrtc.PeerConnectionFactory;
 
 public class Media {
+    private int originalVolume = 0;
     private static Media instance = null;
     private Media() {
     }
@@ -32,6 +38,18 @@ public class Media {
         AudioSource audioSource = peerConnectionFactory.createAudioSource(new MediaConstraints());
         AudioTrack audioTrack = peerConnectionFactory.createAudioTrack("audioTrack", audioSource);
         return audioTrack;
+    }
+
+    public void muteBeepSound(Activity activity) {
+        AudioManager audioManager = (AudioManager) activity.getSystemService(AUDIO_SERVICE);
+        originalVolume = audioManager.getStreamVolume(AudioManager.STREAM_RING);
+
+        audioManager.setStreamVolume(AudioManager.STREAM_RING, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+    }
+
+    public void unmuteBeepSound(Activity activity) {
+        AudioManager audioManager = (AudioManager) activity.getSystemService(AUDIO_SERVICE);
+        audioManager.setStreamVolume(AudioManager.STREAM_RING, originalVolume, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
     }
 
 }

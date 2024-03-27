@@ -6,11 +6,9 @@ import static com.devlogex.yue.android.utils.Constants.API_OFFER_URL;
 import static com.devlogex.yue.android.utils.Constants.ICE_SERVER;
 import static com.devlogex.yue.android.utils.RestAPI.aPost;
 import static com.devlogex.yue.android.utils.RestAPI.post;
+import static com.google.firebase.firestore.DocumentChange.Type.ADDED;
 
 import android.app.Activity;
-import android.content.Intent;
-import android.speech.RecognizerIntent;
-import android.util.Log;
 
 import com.devlogex.yue.android.exceptions.PermissionRequireException;
 import com.devlogex.yue.android.repositories.FSCallback;
@@ -25,7 +23,6 @@ import org.webrtc.DataChannel;
 import org.webrtc.IceCandidate;
 import org.webrtc.MediaConstraints;
 import org.webrtc.MediaStream;
-import org.webrtc.MediaStreamTrack;
 import org.webrtc.PeerConnection;
 import org.webrtc.PeerConnectionFactory;
 import org.webrtc.RtpReceiver;
@@ -254,12 +251,11 @@ public class WebRTC {
                         @Override
                         public void onEventListenColSuccess(QuerySnapshot snapshot) {
                             for (DocumentChange dc : snapshot.getDocumentChanges()) {
-                                switch (dc.getType()) {
-                                    case ADDED:
-                                        System.out.println("TESTING fs listen: " + dc.getDocument().getData());
-                                        String msg = dc.getDocument().getData().get("content").toString();
-                                        TTS.getInstance(activity).speak(msg);
-                                        break;
+                                if (dc.getType() == ADDED) {
+                                    System.out.println("TESTING fs listen: " + dc.getDocument().getData());
+                                    String msg = dc.getDocument().getData().get("content").toString();
+                                    sendYueReplySignal();
+                                    TTS.getInstance(activity).speak(msg);
                                 }
                             }
                         }
@@ -285,6 +281,16 @@ public class WebRTC {
     public void send(String message) {
         ByteBuffer buffer = ByteBuffer.wrap(message.getBytes());
         dataChannel.send(new DataChannel.Buffer(buffer, false));
+    }
+
+    public void sendYueReplySignal() {
+        try {
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("msg_type", "yue_reply");
+            WebRTC.getInstance(activity).send(jsonObject.toString());
+        } catch (Exception e) {
+            // TODO: handle send msg failure
+        }
     }
 
     public void closeConnection() {
