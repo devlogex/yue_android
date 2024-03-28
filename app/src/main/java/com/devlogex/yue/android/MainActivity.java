@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
+import com.devlogex.yue.android.configs.GlobalExceptionHandler;
 import com.devlogex.yue.android.controllers.CallManagement;
 import com.devlogex.yue.android.controllers.GoogleSSO;
 import com.devlogex.yue.android.ui.SharedViewModel;
@@ -30,13 +31,12 @@ public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
 
-    NavController navController;
-
     private SharedViewModel sharedViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Thread.setDefaultUncaughtExceptionHandler(new GlobalExceptionHandler());
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -74,11 +74,7 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == GoogleSSO.RC_SIGN_IN) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             GoogleSSO.getInstance(this).onGoogleSignInResult(task, sharedViewModel);
-            return;
         }
-//        if (requestCode == SpeechRecognition.RC_SPEECH_RECOGNITION) {
-//            SpeechRecognition.getInstance(this).startListening();
-//        }
     }
 
 

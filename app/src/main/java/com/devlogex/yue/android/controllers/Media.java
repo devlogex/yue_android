@@ -6,10 +6,7 @@ import static com.devlogex.yue.android.utils.Permissions.hasAudioPermission;
 import static com.devlogex.yue.android.utils.Permissions.requestAudioPermission;
 
 import android.app.Activity;
-import android.content.Context;
 import android.media.AudioManager;
-
-import androidx.core.content.ContextCompat;
 
 import com.devlogex.yue.android.exceptions.PermissionRequireException;
 

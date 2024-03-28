@@ -1,7 +1,5 @@
 package com.devlogex.yue.android.controllers;
 
-import android.app.Activity;
-
 import com.devlogex.yue.android.ui.SharedViewModel;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.tasks.Task;
